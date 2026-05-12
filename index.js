@@ -16,11 +16,13 @@ import userRouter from './Routers/userRouter.js';
 import authenticate from './Middlewares/authenticate.js';
 import productRouter from './Routers/productRouter.js';
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
+import dotenv from "dotenv"
+dotenv.config() //dotenv kiyna function eke monwhri varible ekk thibbuth me function eke run wey 
 
 //1. Creates the Express app (This creates a server application.)
 const app = express()
 
-const mongoDBurl = "mongodb+srv://Shiyak:Haima123@cluster0.28kj50n.mongodb.net/myDatabase?appName=Cluster0"
+const mongoDBurl = process.env.Mongo_Url
 
 
 mongoose.connect(mongoDBurl)
