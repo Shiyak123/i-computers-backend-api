@@ -17,7 +17,9 @@ import authenticate from './Middlewares/authenticate.js';
 import productRouter from './Routers/productRouter.js';
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
 import dotenv from "dotenv"
+import cors from "cors"
 dotenv.config() //dotenv kiyna function eke monwhri varible ekk thibbuth me function eke run wey 
+
 
 //1. Creates the Express app (This creates a server application.)
 const app = express()
@@ -36,7 +38,7 @@ mongoose.connect(mongoDBurl)
 // 2. Adds middlewares (This allows the server to understand JSON requests like:) pluging the routers into main app
 app.use(express.json())
 app.use(authenticate)
-
+app.use(cors())
 // Request comes
 //    ↓
 // Check Authorization header

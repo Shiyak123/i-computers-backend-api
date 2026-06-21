@@ -1,6 +1,8 @@
 import User from "../Models/users.js"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
+import dotenv from "dotenv"
+dotenv.config()
 
 export async function createUser(req, res) {
     try {
@@ -71,8 +73,8 @@ export async function loginUser(req, res) {
                 isEmailVarified: user.isEmailVarified,
                 image: user.image
             },
-                // and we have o give unprictable key for that user
-                "secretkey99!!!!!"
+                // and we have to give unprictable key for that user
+                "process.env.JWT_key"
 
             )
             res.json({ message: "Login Successful", token: token })
