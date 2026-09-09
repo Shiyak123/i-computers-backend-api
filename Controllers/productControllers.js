@@ -90,7 +90,7 @@ export async function deleteProduct(req, res) {
         res.status(404).json({ message: "Product not found" })
         return
       }
-      await product.deleteOne({ productId: req.user.productId })
+      await Product.deleteOne({ productId: req.params.productId })
       res.json({ message: "Product deleted successfully" })
     } catch (err) {
       res.status(500).json({ message: err.message })
@@ -146,7 +146,7 @@ export async function updateProduct(req, res) {
 
 export async function getProductById(req, res) {
   try {
-    const product = await products.findOne({ productId: req.params.productId })
+    const product = await Product.findOne({ productId: req.params.productId })
     if (product == null) {
       res.status(404).json({ message: "Proudct not found" })
       return
@@ -155,10 +155,10 @@ export async function getProductById(req, res) {
       res.json(product)
 
     } else {
-      if (req.user !== null && req.user.isAdmin) {
+      if (req.user?.isAdmin) {
         res.json(product)
       } else {
-        rs.status(404).json({ message: "Only admin can view Unvavailable products" })
+        res.status(403).json({ message: "Only admin can view Unvavailable products" })
       }
     }
   } catch (err) {

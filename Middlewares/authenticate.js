@@ -10,7 +10,7 @@ export default function authenticate(req, res, next) {
 
     const token = header.replace("Bearer ", "");
 
-    jwt.verify(token, "process.env.JWT_key", (err, decoded) => {
+    jwt.verify(token, process.env.JWT_key, (err, decoded) => {
         if (err || decoded == null) {
             return res.status(401).json({ message: "Invalid token, please login again" });
         }

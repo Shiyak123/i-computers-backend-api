@@ -11,8 +11,9 @@ const userRouter = express.Router() // express.Router() is: A built-in function 
 // 🧠 Simple meaning
 // 👉 Route = URL + action)
 
-
+// This becomes: POST http://localhost:3000/users/
 userRouter.post("/", createUser)
+// This becomes: POST http://localhost:3000/users/login
 userRouter.post("/login", loginUser) // here two post req , these r confucing when these both come as same , we have differ its pats like Frst one is for craetUser 2nd one is for loginUser
 export default userRouter
 

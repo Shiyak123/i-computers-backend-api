@@ -9,23 +9,28 @@
 import express from 'express'
 import mongoose from 'mongoose'
 //import Student from './models/Student.js';
-
+import cors from "cors"
+import dotenv from "dotenv";
 import dns from "node:dns";
+
+import { loginUser } from './Controllers/userControllers.js';
 import studentRouter from './Routers/studentRouter.js';
 import userRouter from './Routers/userRouter.js';
 import authenticate from './Middlewares/authenticate.js';
 import productRouter from './Routers/productRouter.js';
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
-import dotenv from "dotenv"
-import cors from "cors"
-dotenv.config() //dotenv kiyna function eke monwhri varible ekk thibbuth me function eke run wey 
+
+dotenv.config(); //dotenv kiyna function eke monwhri varible ekk thibbuth me function eke run wey 
 
 
 //1. Creates the Express app (This creates a server application.)
-const app = express()
+const app = express();
 
-const mongoDBurl = process.env.Mongo_Url
+app.use(cors())
+app.use(express.json())
 
+//2. Adds middlewares (This allows the server to understand JSON requests like:)
+const mongoDBurl = process.env.MONGO_DB_URL
 
 mongoose.connect(mongoDBurl)
     .then(() => {
@@ -35,20 +40,7 @@ mongoose.connect(mongoDBurl)
         console.log("MongoDB connection error:", err);
     });
 
-// 2. Adds middlewares (This allows the server to understand JSON requests like:) pluging the routers into main app
-app.use(express.json())
-app.use(authenticate)
-app.use(cors())
-// Request comes
-//    ↓
-// Check Authorization header
-//    ↓
-// No token → allow request
-//    ↓
-// Has token → verify
-//    ↓
-// Valid → allow
-// Invalid → block
+
 
 // 🧠 Easy understanding
 
@@ -58,15 +50,20 @@ app.use(cors())
 // 👉 jwt.verify() = check if token is real
 
 
+// app.get("/ping", (req, res) => {
+//     res.send("Backend is working!");
+// });
 
+// In index.js
+app.use("/api/users", userRouter); // this handles user routs
+app.post("/api/users/login", loginUser);
+app.use(authenticate)
 // 3. Connects routes (VERY IMPORTANT)
 // This means:
 // Any request starting with /users
 // Go to userRouter
-app.use("/students", studentRouter) // this handles stdnt routs
-app.use("/users", userRouter) // this handles usr routs
-app.use("/products", productRouter)
-
+app.use("/api/students", studentRouter) // this handles stdnt routs
+app.use("/api/products", productRouter)
 // // this req is used for 
 // app.get("/",
 //     (req, res) => {
@@ -120,7 +117,20 @@ app.use("/products", productRouter)
 //         console.log("post reqest is recieved")
 //     }
 // )
+// 2. Adds middlewares (This allows the server to understand JSON requests like:) pluging the routers into main app
 
+
+
+// Request comes
+//    ↓
+// Check Authorization header
+//    ↓
+// No token → allow request
+//    ↓
+// Has token → verify
+//    ↓
+// Valid → allow
+// Invalid → block
 // 3. Connects routes (VERY IMPORTANT)  (This actually makes the backend live and waiting for requests.)
 app.listen(3000,
     () => {
@@ -128,3 +138,38 @@ app.listen(3000,
         console.log("listening on port no 3000")
     }
 )
+
+// import express from 'express';
+// import mongoose from 'mongoose';
+// import cors from "cors";
+// import dotenv from "dotenv";
+// import userRouter from './Routers/userRouter.js';
+// import studentRouter from './Routers/studentRouter.js';
+// import productRouter from './Routers/productRouter.js';
+// import authenticate from './Middlewares/authenticate.js';
+
+// dotenv.config();
+// const app = express();
+
+// // 1. Middlewares
+// app.use(cors());
+// app.use(express.json());
+
+// // 2. Database Connection
+// mongoose.connect(process.env.Mongo_Url)
+//     .then(() => console.log("MongoDB connected"))
+//     .catch((err) => console.log("DB Error:", err));
+
+// // 3. Public Routes (No token needed)
+// app.use("/users", userRouter);
+
+// // 4. Protected Routes (Token needed)
+// app.use(authenticate);
+// app.use("/students", studentRouter);
+// app.use("/products", productRouter);
+
+// // 5. Start Server
+// const PORT = 3000;
+// app.listen(PORT, () => {
+//     console.log(`Server is running on port ${PORT}`);
+// });

@@ -4,7 +4,7 @@ import { createProduct, deleteProduct, getAllProducts, updateProduct, getProduct
 const productRouter = express.Router()
 productRouter.post("/", createProduct)
 productRouter.get("/", getAllProducts)
-productRouter.get("/:search", (req, res) => {
+productRouter.get("/search/:search", (req, res) => {
     res.json({ message: "search endPoint" })
 })
 productRouter.get("/:productId", getProductById)

@@ -34,37 +34,88 @@ export async function createUser(req, res) {
 
 
 //LOGIN USERS password security
+// export async function loginUser(req, res) {
+//     try {
+//         const { email, password } = req.body;
+//         console.log("Login attempt for:", email); // DEBUG 1
+
+//         const user = await User.findOne({ email: email });
+//         console.log("User found in DB:", user ? "YES" : "NO"); // DEBUG 2
+
+//         if (user == null) {
+//             return res.status(404).json({ message: "Not Found" });
+//         }
+
+//         const isPasswordValid = bcrypt.compareSync(password, user.password);
+//         console.log("Is Password Valid:", isPasswordValid); // DEBUG 3
+
+//         if (isPasswordValid) {
+//             // creating jwt TOKEN for authorised people for accessing .... its like a ID card
+//             // res.json({ message: "Login Successful" })
+
+//             // SINGINING PROCESS      
+//             const token = jwt.sign({
+//                 // we have to give some important details which r must be hide in ID(TOKAN)
+
+//                 email: user.email,
+//                 firstName: user.firstName,
+//                 lastName: user.lastName,
+//                 isAdmin: user.isAdmin,
+//                 isBlocked: user.isBlocked,
+//                 isEmailVarified: user.isEmailVarified,
+//                 image: user.image
+//             },
+//                 // and we have to give unprictable key for that user
+//                 process.env.JWT_key
+
+//             )
+//             res.json({ message: "Login Successful", token: token })
+
+
+//         } else {
+//             // If  sent the input was wrong (Unauthorized),401
+//             res.status(401).json({ message: "Invalid Password" })
+
+//             //res.json({ message: "Invalid Password" }) (normal method)
+//         }
+//     } catch (err) {
+//         res.json({ message: err.message })
+//     }
+// }
+
+
+// They differ because:
+// First one = auto takes all user input (unsafe)
+// Second one = manually controls data (secure)
+
 export async function loginUser(req, res) {
     try {
         const email = req.body.email
         const password = req.body.password
 
+        // Debug: Log the attempt
+        console.log("Login attempt for:", email);
+
         if (email == null || password == null) {
-            //res.json({ message: "Email and Passowrd are required to sign in" })
-            // this is failt which happens from the users' inputs, so we have to make notice this one by standerd (status code) which is 400
-            // so, with status code 
-            res.status(400).json({ message: "Email and password are required to sign in" })
-            return
+            return res.status(400).json({ message: "Email and password are required to sign in" })
         }
-        // check the perticuler user has found on same email adrs
+
+        // 1. Search Database
         const user = await User.findOne({ email: email })
+
         if (user == null) {
-            //  404 not found status code which is used to can not find somthig
-            //res.json({ message: "The user not found" }) // nrmal reguler code
-            res.status(404).json({ message: "Not Found" })
-            return
+            console.log("Result: User not found in DB");
+            return res.status(404).json({ message: "Not Found" }) // Added 'return' to stop execution
         }
 
+        // 2. Validate Password
         const isPasswordValid = bcrypt.compareSync(password, user.password)
+
         if (isPasswordValid) {
-            // creating jwt TOKEN for authorised people for accessing .... its like a ID card
-            // res.json({ message: "Login Successful" })
+            console.log("Result: Password Correct");
 
-
-            // SINGINING PROCESS      
+            // 3. Generate Token
             const token = jwt.sign({
-                // we have to give some important details which r must be hide in ID(TOKAN)
-
                 email: user.email,
                 firstName: user.firstName,
                 lastName: user.lastName,
@@ -73,25 +124,25 @@ export async function loginUser(req, res) {
                 isEmailVarified: user.isEmailVarified,
                 image: user.image
             },
-                // and we have to give unprictable key for that user
-                "process.env.JWT_key"
-
+                process.env.JWT_key, {
+                expiresIn: '1h' // Token expires in 1 hour
+            }
             )
-            res.json({ message: "Login Successful", token: token })
 
+            // Send Success Response
+            return res.json({
+                message: "Login Successful",
+                token: token,
+                isAdmin: user.isAdmin ? true : false
+            });
 
         } else {
-            // If  sent the input was wrong (Unauthorized),401
-            res.status(401).json({ message: "Invalid Password" })
-
-            //res.json({ message: "Invalid Password" }) (normal method)
+            console.log("Result: Invalid Password");
+            return res.status(401).json({ message: "Invalid Password" }) // Added 'return'
         }
+
     } catch (err) {
-        res.json({ message: err.message })
+        console.log("Database Error:", err.message);
+        return res.status(500).json({ message: err.message })
     }
 }
-
-
-// They differ because:
-// First one = auto takes all user input (unsafe)
-// Second one = manually controls data (secure)
