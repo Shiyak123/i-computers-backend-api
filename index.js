@@ -18,6 +18,7 @@ import studentRouter from './Routers/studentRouter.js';
 import userRouter from './Routers/userRouter.js';
 import authenticate from './Middlewares/authenticate.js';
 import productRouter from './Routers/productRouter.js';
+import orderRouter from './Routers/orderRouter.js';
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
 dotenv.config(); //dotenv kiyna function eke monwhri varible ekk thibbuth me function eke run wey 
@@ -64,6 +65,7 @@ app.use(authenticate)
 // Go to userRouter
 app.use("/api/students", studentRouter) // this handles stdnt routs
 app.use("/api/products", productRouter)
+app.use("/api/orders", orderRouter)
 // // this req is used for 
 // app.get("/",
 //     (req, res) => {
