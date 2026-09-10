@@ -1,21 +1,15 @@
 import express from "express";
-import { createUser, loginUser } from "../Controllers/userControllers.js";
-// Importing your function createUser
-// ✔ This function handles:
-// creating a new user in database
+import { createUser, loginUser, getAllUsers, updateUserState, switchRole } from "../Controllers/userControllers.js";
 
+const userRouter = express.Router();
 
-const userRouter = express.Router() // express.Router() is: A built-in function in Express used to create modular, organized route handlers (
-// a route means:
-// A path + method that tells the server what to do when a request comes
-// 🧠 Simple meaning
-// 👉 Route = URL + action)
+userRouter.post("/", createUser);
+userRouter.post("/login", loginUser);
+userRouter.get("/", getAllUsers);
+userRouter.put("/state/:email", updateUserState);
+userRouter.put("/role/:email", switchRole);
 
-// This becomes: POST http://localhost:3000/users/
-userRouter.post("/", createUser)
-// This becomes: POST http://localhost:3000/users/login
-userRouter.post("/login", loginUser) // here two post req , these r confucing when these both come as same , we have differ its pats like Frst one is for craetUser 2nd one is for loginUser
-export default userRouter
+export default userRouter;
 
 // ("/") → path
 // POST → method

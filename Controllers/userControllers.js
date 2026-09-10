@@ -114,6 +114,13 @@ export async function loginUser(req, res) {
         if (isPasswordValid) {
             console.log("Result: Password Correct");
 
+            // Blocked check
+            if (user.isBlocked) {
+                return res.status(403).json({
+                    message: "Your account has been blocked. Please contact support."
+                });
+            }
+
             // 3. Generate Token
             const token = jwt.sign({
                 email: user.email,
@@ -122,7 +129,7 @@ export async function loginUser(req, res) {
                 isAdmin: user.isAdmin,
                 isBlocked: user.isBlocked,
                 isEmailVarified: user.isEmailVarified,
-                image: user.image
+                image: user.Image || user.image
             },
                 process.env.JWT_key, {
                 expiresIn: '1h' // Token expires in 1 hour
@@ -144,5 +151,100 @@ export async function loginUser(req, res) {
     } catch (err) {
         console.log("Database Error:", err.message);
         return res.status(500).json({ message: err.message })
+    }
+}
+
+// GET ALL USERS (ADMIN ONLY, NO PASSWORDS RETURNED)
+export async function getAllUsers(req, res) {
+    if (!req.user || !req.user.isAdmin) {
+        return res.status(403).json({ message: "Forbidden: Admin privileges required" });
+    }
+
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const totalUsers = await User.countDocuments();
+        const totalPages = Math.ceil(totalUsers / limit) || 1;
+
+        // Exclude password and sensitive internal fields
+        const users = await User.find({}, { password: 0, __v: 0 })
+            .sort({ _id: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        res.json({
+            users,
+            totalUsers,
+            totalPages,
+            currentPage: page
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+}
+
+// TOGGLE USER BLOCK STATE (ADMIN ONLY, PREVENTS SELF-BLOCKING)
+export async function updateUserState(req, res) {
+    if (!req.user || !req.user.isAdmin) {
+        return res.status(403).json({ message: "Forbidden: Admin privileges required" });
+    }
+
+    try {
+        const targetEmail = req.params.email;
+
+        // Self-protection check
+        if (targetEmail.toLowerCase() === req.user.email.toLowerCase()) {
+            return res.status(400).json({ message: "You cannot change your own account block state" });
+        }
+
+        const user = await User.findOne({ email: targetEmail });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        user.isBlocked = !user.isBlocked;
+        await user.save();
+
+        res.json({
+            message: `User ${user.isBlocked ? "blocked" : "unblocked"} successfully`,
+            isBlocked: user.isBlocked,
+            email: user.email
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+}
+
+// TOGGLE USER ROLE (ADMIN ONLY, PREVENTS SELF-DEMOTION)
+export async function switchRole(req, res) {
+    if (!req.user || !req.user.isAdmin) {
+        return res.status(403).json({ message: "Forbidden: Admin privileges required" });
+    }
+
+    try {
+        const targetEmail = req.params.email;
+
+        // Self-protection check
+        if (targetEmail.toLowerCase() === req.user.email.toLowerCase()) {
+            return res.status(400).json({ message: "You cannot change your own administrator role" });
+        }
+
+        const user = await User.findOne({ email: targetEmail });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        user.isAdmin = !user.isAdmin;
+        await user.save();
+
+        res.json({
+            message: `User role changed to ${user.isAdmin ? "Admin" : "Customer"} successfully`,
+            isAdmin: user.isAdmin,
+            email: user.email
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
 }

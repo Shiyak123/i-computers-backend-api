@@ -56,13 +56,13 @@ mongoose.connect(mongoDBurl)
 // });
 
 // In index.js
-app.use("/api/users", userRouter); // this handles user routs
 app.post("/api/users/login", loginUser);
 app.use(authenticate)
 // 3. Connects routes (VERY IMPORTANT)
 // This means:
 // Any request starting with /users
 // Go to userRouter
+app.use("/api/users", userRouter); // this handles user routes (POST / is public in authenticate, GET/PUT protected in controller)
 app.use("/api/students", studentRouter) // this handles stdnt routs
 app.use("/api/products", productRouter)
 app.use("/api/orders", orderRouter)
