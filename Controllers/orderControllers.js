@@ -161,15 +161,64 @@ export async function getCustomerOrders(req, res) {
     }
 
     try {
-        let orders;
-        if (req.user.isAdmin) {
-            orders = await Order.find().sort({ date: -1 });
-        } else {
-            orders = await Order.find({ email: req.user.email }).sort({ date: -1 });
+        const query = req.user.isAdmin ? {} : { email: req.user.email };
+
+        // Support pagination if requested via query parameters (?page=1&limit=10)
+        if (req.query.page || req.query.limit) {
+            const page = Math.max(1, parseInt(req.query.page) || 1);
+            const limit = Math.max(1, parseInt(req.query.limit) || 10);
+            const totalOrders = await Order.countDocuments(query);
+            const totalPages = Math.ceil(totalOrders / limit);
+            const orders = await Order.find(query)
+                .sort({ date: -1 })
+                .skip((page - 1) * limit)
+                .limit(limit);
+
+            return res.json({
+                orders,
+                totalPages,
+                totalOrders,
+                currentPage: page
+            });
         }
 
+        // Backwards-compatible default: return full array of orders
+        const orders = await Order.find(query).sort({ date: -1 });
         return res.json(orders);
     } catch (err) {
         return res.status(500).json({ message: err.message || "Failed to fetch orders" });
+    }
+}
+
+export async function updateOrderStatus(req, res) {
+    if (!req.user || !req.user.isAdmin) {
+        return res.status(403).json({ message: "Forbidden: Only admins can update order status" });
+    }
+
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    const allowedStatuses = ["pending", "completed", "cancelled"];
+    if (!status || !allowedStatuses.includes(status)) {
+        return res.status(400).json({
+            message: `Invalid status. Allowed values are: ${allowedStatuses.join(", ")}`
+        });
+    }
+
+    try {
+        const order = await Order.findOne({ orderId });
+        if (!order) {
+            return res.status(404).json({ message: `Order not found: ${orderId}` });
+        }
+
+        order.status = status;
+        await order.save();
+
+        return res.json({
+            message: "Order status updated successfully",
+            order
+        });
+    } catch (err) {
+        return res.status(500).json({ message: err.message || "Failed to update order status" });
     }
 }
