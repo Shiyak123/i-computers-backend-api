@@ -19,9 +19,12 @@ import userRouter from './Routers/userRouter.js';
 import authenticate from './Middlewares/authenticate.js';
 import productRouter from './Routers/productRouter.js';
 import orderRouter from './Routers/orderRouter.js';
-dns.setServers(["1.1.1.1", "8.8.8.8"]);
-
 dotenv.config(); //dotenv kiyna function eke monwhri varible ekk thibbuth me function eke run wey 
+
+// Use custom DNS servers in local development environments if needed (e.g. Windows SRV lookups)
+if (process.env.NODE_ENV !== "production") {
+    dns.setServers(["1.1.1.1", "8.8.8.8"]);
+}
 
 
 //1. Creates the Express app (This creates a server application.)
@@ -51,9 +54,10 @@ mongoose.connect(mongoDBurl)
 // 👉 jwt.verify() = check if token is real
 
 
-// app.get("/ping", (req, res) => {
-//     res.send("Backend is working!");
-// });
+// Root health check endpoint for monitoring and cloud deployment platforms
+app.get("/", (req, res) => {
+    res.send("I-COMPUTERS API is running");
+});
 
 // In index.js
 app.post("/api/users/login", loginUser);
@@ -134,12 +138,11 @@ app.use("/api/orders", orderRouter)
 // Valid → allow
 // Invalid → block
 // 3. Connects routes (VERY IMPORTANT)  (This actually makes the backend live and waiting for requests.)
-app.listen(3000,
-    () => {
-        console.log("the server has started successfully")
-        console.log("listening on port no 3000")
-    }
-)
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`Server started successfully, listening on port ${PORT}`);
+});
 
 // import express from 'express';
 // import mongoose from 'mongoose';
