@@ -148,7 +148,7 @@ export async function getProductById(req, res) {
   try {
     const product = await Product.findOne({ productId: req.params.productId })
     if (product == null) {
-      res.status(404).json({ message: "Proudct not found" })
+      res.status(404).json({ message: "Product not found" })
       return
     }
     if (product.isAvailable) {
@@ -158,10 +158,37 @@ export async function getProductById(req, res) {
       if (req.user?.isAdmin) {
         res.json(product)
       } else {
-        res.status(403).json({ message: "Only admin can view Unvavailable products" })
+        res.status(403).json({ message: "Only admin can view unavailable products" })
       }
     }
   } catch (err) {
     res.status(500).json({ message: err.message })
+  }
+}
+
+export async function searchProducts(req, res) {
+  try {
+    const search = req.params.query || req.params.search || "";
+    const regex = new RegExp(search, "i");
+
+    const query = {
+      $or: [
+        { name: regex },
+        { description: regex },
+        { category: regex },
+        { brand: regex },
+        { model: regex },
+        { alternativeName: regex }
+      ]
+    };
+
+    if (!req.user || !req.user.isAdmin) {
+      query.isAvailable = true;
+    }
+
+    const products = await Product.find(query);
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 }

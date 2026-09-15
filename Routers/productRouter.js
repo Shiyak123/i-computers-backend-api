@@ -1,12 +1,10 @@
 import express from "express";
-import { createProduct, deleteProduct, getAllProducts, updateProduct, getProductById } from "../Controllers/productControllers.js";
+import { createProduct, deleteProduct, getAllProducts, updateProduct, getProductById, searchProducts } from "../Controllers/productControllers.js";
 
 const productRouter = express.Router()
 productRouter.post("/", createProduct)
 productRouter.get("/", getAllProducts)
-productRouter.get("/search/:search", (req, res) => {
-    res.json({ message: "search endPoint" })
-})
+productRouter.get("/search/:query", searchProducts)
 productRouter.get("/:productId", getProductById)
 productRouter.delete("/:productId", deleteProduct) //parameter eke url eka ellil yaweema
 productRouter.put("/:productId", updateProduct)
