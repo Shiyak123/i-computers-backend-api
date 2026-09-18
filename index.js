@@ -19,10 +19,9 @@ import userRouter from './Routers/userRouter.js';
 import authenticate from './Middlewares/authenticate.js';
 import productRouter from './Routers/productRouter.js';
 import orderRouter from './Routers/orderRouter.js';
-dotenv.config(); //dotenv kiyna function eke monwhri varible ekk thibbuth me function eke run wey 
-
-// Use custom DNS servers in local development environments if needed (e.g. Windows SRV lookups)
+// Load local .env and use custom DNS in non-production environments; in production, Render provides environment variables directly
 if (process.env.NODE_ENV !== "production") {
+    dotenv.config();
     dns.setServers(["1.1.1.1", "8.8.8.8"]);
 }
 
@@ -54,8 +53,12 @@ mongoose.connect(mongoDBurl)
 // 👉 jwt.verify() = check if token is real
 
 
-// Root health check endpoint for monitoring and cloud deployment platforms
+// Root health check endpoints for monitoring and cloud deployment platforms
 app.get("/", (req, res) => {
+    res.send("I-COMPUTERS API is running");
+});
+
+app.get("/ping", (req, res) => {
     res.send("I-COMPUTERS API is running");
 });
 
@@ -140,7 +143,7 @@ app.use("/api/orders", orderRouter)
 // 3. Connects routes (VERY IMPORTANT)  (This actually makes the backend live and waiting for requests.)
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server started successfully, listening on port ${PORT}`);
 });
 

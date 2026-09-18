@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv"
-dotenv.config()
+if (process.env.NODE_ENV !== "production") {
+    dotenv.config();
+}
 export default function authenticate(req, res, next) {
     const header = req.header("Authorization");
 

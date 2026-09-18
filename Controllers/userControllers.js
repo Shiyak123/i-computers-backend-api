@@ -3,7 +3,9 @@ import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import nodemailer from "nodemailer"
 import dotenv from "dotenv"
-dotenv.config()
+if (process.env.NODE_ENV !== "production") {
+    dotenv.config();
+}
 
 export async function createUser(req, res) {
     try {
